@@ -1,7 +1,29 @@
 {
-  "functions": {
-    "api/index.py": {
-      "runtime": "@vercel/python@3.1.0"
-    }
-  }
+    "version": 2,
+    "builds": [
+        {
+            "src": "app.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "50mb"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1",
+            "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable"
+            }
+        },
+        {
+            "src": "/favicon.ico",
+            "dest": "/static/img/logo.webp"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "app.py"
+        }
+    ]
 }
