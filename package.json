@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "vercel-build": "npm install"
+  },
   "dependencies": {
     "javascript-obfuscator": "^4.0.0"
   }
