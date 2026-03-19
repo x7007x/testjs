@@ -25,3 +25,14 @@ build_obfuscated()
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/routes")
+def list_routes():
+    output = []
+
+    for rule in app.url_map.iter_rules():
+        methods = ",".join(sorted(rule.methods))
+        line = f"{rule.rule}  [{methods}]"
+        output.append(line)
+
+    return "<br>".join(output)
