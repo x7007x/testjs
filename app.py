@@ -36,3 +36,16 @@ def list_routes():
         output.append(line)
 
     return "<br>".join(output)
+
+import os
+
+@app.route("/files")
+def list_files():
+    result = []
+
+    for root, dirs, files in os.walk("."):
+        for name in files:
+            path = os.path.join(root, name)
+            result.append(path)
+
+    return "<br>".join(result)
