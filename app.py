@@ -1,52 +1,27 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template
 import subprocess
-import shutil
+import os
 
 app = Flask(__name__)
 
-def run_obfuscator(js_code):
-    possible_paths = [
-        "node_modules/.bin/javascript-obfuscator",
-        "./node_modules/.bin/javascript-obfuscator",
-        shutil.which("javascript-obfuscator"),
-        "npx javascript-obfuscator"
-    ]
+def build_obfuscated():
+    input_file = "static/js/app.js"
+    output_file = "static/js/app.obf.js"
 
-    for path in possible_paths:
-        if not path:
-            continue
+    if not os.path.exists(output_file):
         try:
-            if "npx" in path:
-                cmd = ["npx", "javascript-obfuscator"]
-            else:
-                cmd = [path]
-
-            result = subprocess.run(
-                cmd,
-                input=js_code,
-                text=True,
-                capture_output=True
-            )
-
-            if result.stdout:
-                return result.stdout
+            subprocess.run([
+                "npx",
+                "javascript-obfuscator",
+                input_file,
+                "--output",
+                output_file
+            ], check=True)
         except Exception:
-            continue
+            pass
 
-    return js_code
-
-@app.after_request
-def obfuscate_js(response):
-    if response.content_type.startswith("application/javascript"):
-        js_code = response.get_data(as_text=True)
-        response.set_data(run_obfuscator(js_code))
-    return response
+build_obfuscated()
 
 @app.route("/")
 def index():
     return render_template("index.html")
-
-@app.route("/static/js/app.js")
-def serve_js():
-    with open("static/js/app.js", "r") as f:
-        return Response(f.read(), mimetype="application/javascript")
