@@ -1,22 +1,45 @@
 from flask import Flask, render_template, Response
 import subprocess
+import shutil
 
 app = Flask(__name__)
+
+def run_obfuscator(js_code):
+    possible_paths = [
+        "node_modules/.bin/javascript-obfuscator",
+        "./node_modules/.bin/javascript-obfuscator",
+        shutil.which("javascript-obfuscator"),
+        "npx javascript-obfuscator"
+    ]
+
+    for path in possible_paths:
+        if not path:
+            continue
+        try:
+            if "npx" in path:
+                cmd = ["npx", "javascript-obfuscator"]
+            else:
+                cmd = [path]
+
+            result = subprocess.run(
+                cmd,
+                input=js_code,
+                text=True,
+                capture_output=True
+            )
+
+            if result.stdout:
+                return result.stdout
+        except Exception:
+            continue
+
+    return js_code
 
 @app.after_request
 def obfuscate_js(response):
     if response.content_type.startswith("application/javascript"):
-        try:
-            result = subprocess.run(
-                ["./node_modules/.bin/javascript-obfuscator"],
-                input=response.get_data(as_text=True),
-                text=True,
-                capture_output=True
-            )
-            if result.stdout:
-                response.set_data(result.stdout)
-        except Exception:
-            pass
+        js_code = response.get_data(as_text=True)
+        response.set_data(run_obfuscator(js_code))
     return response
 
 @app.route("/")
